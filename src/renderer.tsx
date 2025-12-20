@@ -62,14 +62,17 @@ function App() {
     if (!webview || !inputURL) return;
 
     let finalUrl = "";
-    if (inputURL.startsWith("http") || inputURL.startsWith("https://")) {
+    if (inputURL.startsWith("http://") || inputURL.startsWith("https://")) {
       finalUrl = inputURL;
     } else {
-      finalUrl = "http://" + inputURL;
+      finalUrl = "https://" + inputURL;
     }
 
-    webview.src = inputURL;
-    setUrl(inputURL);
+    webview.src = finalUrl;
+    setUrl(finalUrl);
+    if (urlInputRef.current) {
+      urlInputRef.current.value = finalUrl;
+    }
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
