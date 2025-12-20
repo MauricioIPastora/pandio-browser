@@ -64,8 +64,10 @@ function App() {
     let finalUrl = "";
     if (inputURL.startsWith("http://") || inputURL.startsWith("https://")) {
       finalUrl = inputURL;
-    } else {
+    } else if (/\.([a-z]{2,}|[a-z]{2,}\.[a-z]{2,})/i.test(inputURL)) {
       finalUrl = "https://" + inputURL;
+    } else {
+      finalUrl = `https://www.google.com/search?q=${encodeURIComponent(inputURL)}`;
     }
 
     webview.src = finalUrl;
