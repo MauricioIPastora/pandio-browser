@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { useRef } from "react";
 import { Input } from "@/components/ui/input";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
@@ -121,73 +121,72 @@ function App() {
   };
 
   return (
-    <div
-      id="browser-container"
-      className="flex flex-col w-full h-full bg-gray-800"
-    >
-      <div
-        id="browser-tools"
-        className="flex w-full space-x-1 p-3 bg-[#18181b] border-b border-white/10"
-      >
-        <VinelyTabsSidebar />
-        <div id="button-container" className="flex space-x-1">
-          <Button
-            onClick={toggleSidebar}
-            className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
-          >
-            <FileIcon />
-          </Button>
-          <Button
-            onClick={handleBack}
-            className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
-          >
-            <ArrowLeftIcon />
-          </Button>
-          <Button
-            onClick={handleForward}
-            className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
-          >
-            <ArrowRightIcon />
-          </Button>
-          <Button
-            onClick={handleRefresh}
-            className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
-          >
-            <RefreshCwIcon />
-          </Button>
-          <Button
-            onClick={handleSearch}
-            className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
-          >
-            <SearchIcon />
-          </Button>
-          <Button
-            onClick={handleHome}
-            className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
-          >
-            <HomeIcon />
-          </Button>
+    <>
+      <VinelyTabsSidebar />
+      <SidebarInset>
+        <div
+          id="browser-tools"
+          className="flex w-full space-x-1 p-3 bg-[#18181b] border-b border-white/10"
+        >
+          <div id="button-container" className="flex space-x-1">
+            <Button
+              onClick={toggleSidebar}
+              className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
+            >
+              <FileIcon />
+            </Button>
+            <Button
+              onClick={handleBack}
+              className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
+            >
+              <ArrowLeftIcon />
+            </Button>
+            <Button
+              onClick={handleForward}
+              className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
+            >
+              <ArrowRightIcon />
+            </Button>
+            <Button
+              onClick={handleRefresh}
+              className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
+            >
+              <RefreshCwIcon />
+            </Button>
+            <Button
+              onClick={handleSearch}
+              className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
+            >
+              <SearchIcon />
+            </Button>
+            <Button
+              onClick={handleHome}
+              className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
+            >
+              <HomeIcon />
+            </Button>
+          </div>
+          <div id="url-input-container" className="flex w-full gap-1">
+            <Input
+              type="text"
+              ref={urlInputRef}
+              onKeyDown={handleKeyDown}
+              className="bg-[#27272a] text-[#71717a] border-white/10 hover:bg-[#e4e4e7]/10 focus-visible:ring-0 focus-visible:ring-offset-0"
+            />
+            <Button
+              onClick={handleChat}
+              className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
+            >
+              <MessageCircleIcon />
+            </Button>
+          </div>
         </div>
-        <div id="url-input-container" className="flex w-full gap-1">
-          <Input
-            type="text"
-            ref={urlInputRef}
-            onKeyDown={handleKeyDown}
-            className="bg-[#27272a] text-[#71717a] border-white/10 hover:bg-[#e4e4e7]/10 focus-visible:ring-0 focus-visible:ring-offset-0"
-          />
-          <Button
-            onClick={handleChat}
-            className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
-          >
-            <MessageCircleIcon />
-          </Button>
+        <div id="webview-container" className="flex w-full h-full bg-slate-500">
+          <webview ref={webViewRef} src={url} className="w-full h-full" />
         </div>
-      </div>
-      <div id="webview-container" className="flex w-full h-full bg-slate-500">
-        <webview ref={webViewRef} src={url} className="w-full h-full" />
-      </div>
-      {isChatOpen && <VinelyChat onClose={closeChat} />}
-    </div>
+        {isChatOpen && <VinelyChat onClose={closeChat} />}
+      </SidebarInset>
+    </>
   );
 }
 
@@ -196,7 +195,7 @@ if (container) {
   const root = createRoot(container);
   root.render(
     <React.StrictMode>
-      <SidebarProvider className="h-full">
+      <SidebarProvider className="h-full" defaultOpen={false}>
         <App />
       </SidebarProvider>
     </React.StrictMode>
