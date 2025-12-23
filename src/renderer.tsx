@@ -181,10 +181,12 @@ function App() {
             </Button>
           </div>
         </div>
-        <div id="webview-container" className="flex w-full h-full bg-slate-500">
-          <webview ref={webViewRef} src={url} className="w-full h-full" />
+        <div className="flex w-full h-full">
+          <div id="webview-container" className="flex flex-1 h-full bg-slate-500">
+            <webview ref={webViewRef} src={url} className="w-full h-full" />
+          </div>
+          {isChatOpen && <PandioChat onClose={closeChat} />}
         </div>
-        {isChatOpen && <PandioChat onClose={closeChat} />}
       </SidebarInset>
     </>
   );

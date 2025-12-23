@@ -19,9 +19,9 @@ export function PandioChat({ onClose }: { onClose: () => void }) {
   const getSidebarX = () => window.innerWidth - sidebarWidth;
   const [sidebarX, setSidebarX] = useState(getSidebarX());
 
-  // Update sidebar position on window resize
+  // Update sidebar position on resize (only needed for modal mode)
   useEffect(() => {
-    if (isSidebarMode) {
+    if (!isSidebarMode) {
       const handleResize = () => {
         setSidebarX(getSidebarX());
       };
@@ -39,20 +39,16 @@ export function PandioChat({ onClose }: { onClose: () => void }) {
     setSidebarX(window.innerWidth - sidebarWidth);
   };
 
-  // Sidebar mode - fixed right sidebar
+  // Sidebar mode - inset right sidebar (part of layout flow)
   if (isSidebarMode) {
     return (
       <div
+        className="flex-shrink-0 h-full bg-[#18181b]"
         style={{
-          position: "fixed",
-          right: 0,
-          top: 0,
-          bottom: 0,
           width: `${sidebarWidth}px`,
-          zIndex: 9999,
         }}
       >
-        <Card className="h-full flex flex-col bg-[#18181b] border-white/10">
+        <Card className="h-full flex flex-col bg-[#18181b] border-white/10 rounded-none">
           <CardHeader className="py-2 px-4 flex flex-row items-center justify-between space-y-0">
             <CardTitle className="text-[#fafafa] text-lg font-bold text-center">
               Pandio Chat
