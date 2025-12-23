@@ -1,6 +1,6 @@
 import { useSidebar } from "@/components/ui/sidebar";
 
-export function useVinelySidebar() {
+export function usePandioSidebar() {
   const { toggleSidebar } = useSidebar();
   return { toggleSidebar };
 }

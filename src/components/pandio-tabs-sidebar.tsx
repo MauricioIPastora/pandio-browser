@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-export function VinelyTabsSidebar() {
+export function PandioTabsSidebar() {
   return (
     <Sidebar
       collapsible="offcanvas"

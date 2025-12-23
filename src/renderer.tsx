@@ -15,16 +15,16 @@ import {
   RefreshCwIcon,
   SearchIcon,
 } from "lucide-react";
-import { useVinelySidebar } from "@/hooks/use-sidebar";
-import { VinelyTabsSidebar } from "./components/vinely-tabs-sidebar";
+import { usePandioSidebar } from "@/hooks/use-sidebar";
+import { PandioTabsSidebar } from "./components/pandio-tabs-sidebar";
 import useChat from "./hooks/use-chat";
-import { VinelyChat } from "./components/vinely-chat";
+import { PandioChat } from "./components/pandio-chat";
 
 function App() {
   const [url, setUrl] = useState("https://vinely.ai");
   const webViewRef = useRef<any>(null);
   const urlInputRef = useRef<HTMLInputElement>(null);
-  const { toggleSidebar } = useVinelySidebar(); // open is true if the sidebar is open, false if it is closed
+  const { toggleSidebar } = usePandioSidebar(); // open is true if the sidebar is open, false if it is closed
   const { isChatOpen, toggleChat, closeChat } = useChat();
 
   useEffect(() => {
@@ -122,7 +122,7 @@ function App() {
 
   return (
     <>
-      <VinelyTabsSidebar />
+      <PandioTabsSidebar />
       <SidebarInset>
         <div
           id="browser-tools"
@@ -184,7 +184,7 @@ function App() {
         <div id="webview-container" className="flex w-full h-full bg-slate-500">
           <webview ref={webViewRef} src={url} className="w-full h-full" />
         </div>
-        {isChatOpen && <VinelyChat onClose={closeChat} />}
+        {isChatOpen && <PandioChat onClose={closeChat} />}
       </SidebarInset>
     </>
   );
