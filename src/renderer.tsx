@@ -182,7 +182,10 @@ function App() {
           </div>
         </div>
         <div className="flex w-full h-full">
-          <div id="webview-container" className="flex flex-1 h-full bg-slate-500">
+          <div
+            id="webview-container"
+            className="flex flex-1 h-full bg-slate-500"
+          >
             <webview ref={webViewRef} src={url} className="w-full h-full" />
           </div>
           {isChatOpen && <PandioChat onClose={closeChat} />}
