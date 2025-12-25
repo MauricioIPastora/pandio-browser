@@ -1,4 +1,4 @@
-# Vinely Browser
+# Pandio Browser
 
 A modern Electron-based browser application built with React, TypeScript, and Vite.
 
@@ -15,7 +15,7 @@ Before you begin, ensure you have the following installed:
 
 ```bash
 git clone https://github.com/MauricioIPastora/pandio-browser.git
-cd vinely-browser/vinely-browser
+cd pandio-browser/pandio-browser
 ```
 
 ### 2. Install Dependencies
@@ -77,7 +77,7 @@ This will generate distributables for your current platform:
 ## Project Structure
 
 ```
-vinely-browser/
+Pandio-browser/
 ├── src/
 │   ├── components/     # React components
 │   ├── hooks/          # Custom React hooks
