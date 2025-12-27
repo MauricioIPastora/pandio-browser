@@ -19,44 +19,56 @@ import { usePandioSidebar } from "@/hooks/use-sidebar";
 import { PandioTabsSidebar } from "./components/pandio-tabs-sidebar";
 import useChat from "./hooks/use-chat";
 import { PandioChat } from "./components/pandio-chat";
+import { useBoundStore } from "@/store/useBoundStore";
 
 function App() {
-  const [url, setUrl] = useState("https://vinely.ai");
-  const webViewRef = useRef<any>(null);
+  const tabs = useBoundStore((state) => state.tabs.items);
+  const selectedTabId = useBoundStore((state) => state.tabs.selectedTabId);
+  const updateTab = useBoundStore((state) => state.tabs.updateTab);
+
+  const webviewRefs = useRef<Map<number, HTMLWebViewElement>>(new Map());
   const urlInputRef = useRef<HTMLInputElement>(null);
+
+  const currentTab = tabs.find((t) => t.id === selectedTabId);
   const { toggleSidebar } = usePandioSidebar(); // open is true if the sidebar is open, false if it is closed
   const { isChatOpen, toggleChat, closeChat } = useChat();
 
+  // Update URL bar when switching tabs
   useEffect(() => {
-    const webview = webViewRef.current;
-    if (!webview) return;
-
-    // set the initial url only on mount
-
-    if (!webview.src) {
-      webview.src = url;
-      if (urlInputRef.current) {
-        urlInputRef.current.value = url;
-      }
+    if (currentTab && urlInputRef.current) {
+      urlInputRef.current.value = currentTab.url;
     }
+  }, [selectedTabId, currentTab]);
 
-    // handle navigation events
-    const handleNavigation = (event: any) => {
-      setUrl(event.url);
-      if (urlInputRef.current) {
-        urlInputRef.current.value = event.url;
-      }
-    };
+  // Setup webview event listeners for each tab
+  useEffect(() => {
+    tabs.forEach((tab) => {
+      const webview = webviewRefs.current.get(tab.id);
+      if (!webview) return;
 
-    webview.addEventListener("did-navigate", handleNavigation);
+      const handleNavigation = (event: any) => {
+        updateTab(tab.id, { url: event.url });
+        if (tab.id === selectedTabId && urlInputRef.current) {
+          urlInputRef.current.value = event.url;
+        }
+      };
 
-    return () => {
-      webview.removeEventListener("did-navigate", handleNavigation);
-    };
-  }, []);
+      const handleTitleUpdate = (event: any) => {
+        updateTab(tab.id, { name: event.title });
+      };
+
+      webview.addEventListener("did-navigate", handleNavigation);
+      webview.addEventListener("page-title-updated", handleTitleUpdate);
+
+      return () => {
+        webview.removeEventListener("did-navigate", handleNavigation);
+        webview.removeEventListener("page-title-updated", handleTitleUpdate);
+      };
+    });
+  }, [tabs, selectedTabId, updateTab]);
 
   const handleUrl = () => {
-    const webview = webViewRef.current;
+    const webview = webviewRefs.current.get(selectedTabId);
     const inputURL = urlInputRef.current?.value || "";
 
     if (!webview || !inputURL) return;
@@ -71,7 +83,7 @@ function App() {
     }
 
     webview.src = finalUrl;
-    setUrl(finalUrl);
+    updateTab(selectedTabId, { url: finalUrl });
     if (urlInputRef.current) {
       urlInputRef.current.value = finalUrl;
     }
@@ -85,31 +97,39 @@ function App() {
   };
 
   const handleBack = () => {
-    webViewRef.current?.goBack();
+    webviewRefs.current.get(selectedTabId)?.goBack();
   };
 
   const handleForward = () => {
-    webViewRef.current?.goForward();
+    webviewRefs.current.get(selectedTabId)?.goForward();
   };
 
   const handleRefresh = () => {
-    webViewRef.current?.reload();
+    webviewRefs.current.get(selectedTabId)?.reload();
   };
 
   const handleSearch = () => {
     const searchUrl = "https://www.google.com/";
-    setUrl(searchUrl);
+    const webview = webviewRefs.current.get(selectedTabId);
     if (urlInputRef.current) {
       urlInputRef.current.value = searchUrl;
     }
-    if (webViewRef.current) {
-      webViewRef.current.src = searchUrl;
+    if (webview) {
+      webview.src = searchUrl;
     }
+    updateTab(selectedTabId, { url: searchUrl });
   };
 
   const handleHome = () => {
     const homeUrl = "https://vinely.ai";
-    setUrl(homeUrl);
+    const webview = webviewRefs.current.get(selectedTabId);
+    if (webview) {
+      webview.src = homeUrl;
+    }
+    if (urlInputRef.current) {
+      urlInputRef.current.value = homeUrl;
+    }
+    updateTab(selectedTabId, { url: homeUrl });
   };
 
   const handleChat = () => {
@@ -181,12 +201,28 @@ function App() {
             </Button>
           </div>
         </div>
-        <div className="flex w-full h-full">
-          <div
-            id="webview-container"
-            className="flex flex-1 h-full bg-slate-500"
-          >
-            <webview ref={webViewRef} src={url} className="w-full h-full" />
+        <div className="flex flex-1 w-full min-h-0 overflow-hidden">
+          <div id="webview-container" className="flex-1 min-h-0 relative">
+            {tabs.map((tab) => (
+              <webview
+                key={tab.id}
+                ref={(el) => {
+                  if (el) webviewRefs.current.set(tab.id, el);
+                  else webviewRefs.current.delete(tab.id);
+                }}
+                src={tab.url}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  width: "100%",
+                  height: "100%",
+                  display: tab.id === selectedTabId ? "flex" : "none",
+                }}
+              />
+            ))}
           </div>
           {isChatOpen && <PandioChat onClose={closeChat} />}
         </div>

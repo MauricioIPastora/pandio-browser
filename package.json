@@ -28,6 +28,7 @@
     "@electron-forge/plugin-vite": "^7.10.2",
     "@electron/fuses": "^1.8.0",
     "@types/electron-squirrel-startup": "^1.0.2",
+    "@types/lodash": "^4.17.21",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
@@ -53,13 +54,18 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "electron-squirrel-startup": "^1.0.1",
+    "framer-motion": "^12.23.26",
+    "immer": "^11.1.0",
+    "lodash": "^4.17.21",
     "lucide-react": "^0.562.0",
     "openai": "^6.15.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-hook-form": "^7.68.0",
+    "react-icons": "^5.5.0",
     "react-rnd": "^10.5.2",
     "tailwind-merge": "^3.4.0",
-    "zod": "^4.2.1"
+    "zod": "^4.2.1",
+    "zustand": "^5.0.9"
   }
 }
