@@ -4,6 +4,7 @@ import {
   useState,
   useCallback,
   useEffect,
+  useRef,
   ReactNode,
 } from "react";
 import { extractPageContent, PageContent } from "../lib/page-extractor";
@@ -32,6 +33,11 @@ export function PageContextProvider({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Track the current webview to properly clean up listeners
+  const webviewRef = useRef<Electron.WebviewTag | null>(null);
+  // Track pending timeouts to cancel on cleanup
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const refreshContent = useCallback(async () => {
     const webview = getWebview();
     if (!webview) {
@@ -56,24 +62,50 @@ export function PageContextProvider({
     }
   }, [getWebview]);
 
-  // Auto-refresh when tab changes
-  useEffect(() => {
-    refreshContent();
-  }, [activeTabId, refreshContent]);
-
-  // Optional: Listen for navigation events within the same tab
+  // Single useEffect that handles both tab switching AND navigation
   useEffect(() => {
     const webview = getWebview();
-    if (!webview) return;
+    webviewRef.current = webview;
 
+    // Clear any pending timeout from previous tab
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
+    if (!webview) {
+      setPageContent(null);
+      return;
+    }
+
+    // Fetch immediately on tab change
+    refreshContent();
+
+    // Also listen for navigation within this tab
     const handleNavigation = () => {
-      // Small delay to let page load
-      setTimeout(refreshContent, 500);
+      // Clear previous timeout if user navigates rapidly
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      // Delay to let page content render
+      timeoutRef.current = setTimeout(refreshContent, 500);
     };
 
     webview.addEventListener("did-finish-load", handleNavigation);
+
     return () => {
-      webview.removeEventListener("did-finish-load", handleNavigation);
+      // Clean up the specific webview we attached to
+      if (webviewRef.current) {
+        webviewRef.current.removeEventListener(
+          "did-finish-load",
+          handleNavigation
+        );
+      }
+      // Cancel any pending refresh
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
     };
   }, [activeTabId, getWebview, refreshContent]);
 
@@ -86,7 +118,6 @@ export function PageContextProvider({
   );
 }
 
-// Custom hook for consuming the context
 export function usePageContext() {
   const context = useContext(PageContext);
   if (!context) {

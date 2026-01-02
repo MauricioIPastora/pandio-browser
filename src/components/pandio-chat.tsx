@@ -203,7 +203,8 @@ Answer questions about this page. Be concise and helpful.`;
               Pandio Chat
             </CardTitle>
             <div className="flex gap-2">
-              <Button
+              {/* refresh context button */}
+              {/* <Button
                 onClick={() => refreshContent()}
                 size="icon"
                 disabled={isLoadingContext}
@@ -213,7 +214,7 @@ Answer questions about this page. Be concise and helpful.`;
                 <RefreshCwIcon
                   className={`h-4 w-4 ${isLoadingContext ? "animate-spin" : ""}`}
                 />
-              </Button>
+              </Button> */}
               <Button
                 onClick={handleRelease}
                 size="icon"
@@ -347,7 +348,8 @@ Answer questions about this page. Be concise and helpful.`;
             Pandio Chat
           </CardTitle>
           <div className="flex gap-2">
-            <Button
+            {/* refresh context button */}
+            {/* <Button
               onClick={() => refreshContent()}
               size="icon"
               disabled={isLoadingContext}
@@ -357,7 +359,7 @@ Answer questions about this page. Be concise and helpful.`;
               <RefreshCwIcon
                 className={`h-4 w-4 ${isLoadingContext ? "animate-spin" : ""}`}
               />
-            </Button>
+            </Button> */}
             <Button
               size="icon"
               className="bg-[#27272a] hover:bg-[#3f3f46] h-6 w-6"
