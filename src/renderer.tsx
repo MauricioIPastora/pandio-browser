@@ -33,15 +33,11 @@ function App() {
   const { toggleSidebar } = usePandioSidebar(); // open is true if the sidebar is open, false if it is closed
   const { isChatOpen, toggleChat, closeChat } = useChat();
 
-  // Update URL bar when switching tabs
+  // Setup webview event listeners for each tab
   useEffect(() => {
     if (currentTab && urlInputRef.current) {
       urlInputRef.current.value = currentTab.url;
     }
-  }, [selectedTabId, currentTab]);
-
-  // Setup webview event listeners for each tab
-  useEffect(() => {
     tabs.forEach((tab) => {
       const webview = webviewRefs.current.get(tab.id);
       if (!webview) return;
@@ -57,12 +53,24 @@ function App() {
         updateTab(tab.id, { name: event.title });
       };
 
+      const handleFaviconUpdate = (event: any) => {
+        // event.favicons is an array of favicon URLs
+        if (event.favicons && event.favicons.length > 0) {
+          updateTab(tab.id, { favicon: event.favicons[0] });
+        }
+      };
+
       webview.addEventListener("did-navigate", handleNavigation);
       webview.addEventListener("page-title-updated", handleTitleUpdate);
+      webview.addEventListener("page-favicon-updated", handleFaviconUpdate);
 
       return () => {
         webview.removeEventListener("did-navigate", handleNavigation);
         webview.removeEventListener("page-title-updated", handleTitleUpdate);
+        webview.removeEventListener(
+          "page-favicon-updated",
+          handleFaviconUpdate
+        );
       };
     });
   }, [tabs, selectedTabId, updateTab]);

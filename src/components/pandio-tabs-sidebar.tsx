@@ -42,15 +42,32 @@ export function PandioTabsSidebar() {
               key={tab.id}
               onClick={() => setSelectedTab(tab)}
               className={`
-                group flex items-center justify-between px-3 py-2 rounded cursor-pointer
-                ${
-                  selectedTabId === tab.id
-                    ? "bg-[#27272a] text-white"
-                    : "text-white/70 hover:text-white hover:bg-[#27272a]/50"
-                }
-              `}
+      group flex items-center justify-between px-3 py-2 rounded cursor-pointer
+      ${
+        selectedTabId === tab.id
+          ? "bg-[#27272a] text-white"
+          : "text-white/70 hover:text-white hover:bg-[#27272a]/50"
+      }
+    `}
             >
-              <span className="text-sm truncate flex-1">{tab.name}</span>
+              {/* 👇 Add favicon here */}
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                {tab.favicon ? (
+                  <img
+                    src={tab.favicon}
+                    alt=""
+                    className="w-4 h-4 flex-shrink-0"
+                    onError={(e) => {
+                      // Fallback if favicon fails to load
+                      (e.target as HTMLImageElement).style.display = "none";
+                    }}
+                  />
+                ) : (
+                  <div className="w-4 h-4 flex-shrink-0 bg-white/20 rounded" />
+                )}
+                <span className="text-sm truncate">{tab.name || tab.url}</span>
+              </div>
+
               <button
                 onClick={(e) => {
                   e.stopPropagation();

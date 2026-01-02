@@ -30,6 +30,7 @@ export const createTabSlice: StateCreator<TabsSlice, [], [], TabsSlice> = (
               id: Date.now(),
               name: "New Tab",
               url: "https://vinely.ai",
+              favicon: "",
             };
             state.tabs.selectedTabId = state.tabs.items[0].id;
             state.tabs.selectedTabIndex = 0;
@@ -60,6 +61,7 @@ export const createTabSlice: StateCreator<TabsSlice, [], [], TabsSlice> = (
             id: newId,
             name: "New Tab",
             url: "https://vinely.ai",
+            favicon: "",
           });
           state.tabs.selectedTabId = newId;
           state.tabs.selectedTabIndex = state.tabs.items.length - 1;
