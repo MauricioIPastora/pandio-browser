@@ -26,7 +26,7 @@ function App() {
   const selectedTabId = useBoundStore((state) => state.tabs.selectedTabId);
   const updateTab = useBoundStore((state) => state.tabs.updateTab);
 
-  const webviewRefs = useRef<Map<number, HTMLWebViewElement>>(new Map());
+  const webviewRefs = useRef<Map<number, Electron.WebviewTag>>(new Map());
   const urlInputRef = useRef<HTMLInputElement>(null);
 
   const currentTab = tabs.find((t) => t.id === selectedTabId);
@@ -215,7 +215,11 @@ function App() {
               <webview
                 key={tab.id}
                 ref={(el) => {
-                  if (el) webviewRefs.current.set(tab.id, el);
+                  if (el)
+                    webviewRefs.current.set(
+                      tab.id,
+                      el as unknown as Electron.WebviewTag
+                    );
                   else webviewRefs.current.delete(tab.id);
                 }}
                 src={tab.url}

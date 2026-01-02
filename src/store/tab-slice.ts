@@ -7,7 +7,7 @@ export const createTabSlice: StateCreator<TabsSlice, [], [], TabsSlice> = (
   set
 ) => ({
   tabs: {
-    items: [{ id: 0, name: "New Tab", url: "https://vinely.ai" }],
+    items: [{ id: 0, name: "New Tab", url: "https://vinely.ai", favicon: "" }],
     selectedTabId: 0,
     selectedTabIndex: 0,
 
