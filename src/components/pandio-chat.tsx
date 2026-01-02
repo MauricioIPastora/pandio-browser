@@ -8,13 +8,27 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { SendIcon, XIcon, Maximize2Icon, Minimize2Icon } from "lucide-react";
+import {
+  SendIcon,
+  XIcon,
+  Maximize2Icon,
+  Minimize2Icon,
+  RefreshCwIcon,
+  GlobeIcon,
+  AlertCircleIcon,
+} from "lucide-react";
 import { Rnd } from "react-rnd";
 import { useState, useEffect, useRef } from "react";
+import { usePageContext } from "../contexts/page-context";
 
 export function PandioChat({ onClose }: { onClose: () => void }) {
   const [isSidebarMode, setIsSidebarMode] = useState(true);
   const sidebarWidth = 300;
+  const {
+    pageContent,
+    isLoading: isLoadingContext,
+    refreshContent,
+  } = usePageContext();
 
   // Chat state management
   const [messages, setMessages] = useState<
@@ -57,9 +71,32 @@ export function PandioChat({ onClose }: { onClose: () => void }) {
     return import.meta.env.VITE_OPENAI_API_KEY || "";
   };
 
+  // Build system message with page context
+  const buildSystemMessage = (): string => {
+    if (!pageContent) {
+      return "You are Pandio, a helpful AI assistant integrated into a web browser.";
+    }
+
+    return `You are Pandio, a helpful AI assistant integrated into a web browser.
+The user is currently viewing a webpage and may ask questions about it.
+
+=== CURRENT PAGE CONTEXT ===
+URL: ${pageContent.url}
+Title: ${pageContent.title}
+${pageContent.description ? `Description: ${pageContent.description}` : ""}
+
+Page Content:
+${pageContent.content}
+=== END PAGE CONTEXT ===
+
+${pageContent.selectedText ? `The user has selected: "${pageContent.selectedText}"` : ""}
+
+Answer questions about this page. Be concise and helpful.`;
+  };
+
   // Call OpenAI API using fetch (works in Electron renderer)
   const callOpenAI = async (
-    messages: Array<{ role: "user" | "assistant"; content: string }>
+    userMessages: Array<{ role: "user" | "assistant"; content: string }>
   ) => {
     const apiKey = getApiKey();
 
@@ -69,6 +106,12 @@ export function PandioChat({ onClose }: { onClose: () => void }) {
       );
     }
 
+    // Build messages array with system context
+    const messagesWithContext = [
+      { role: "system" as const, content: buildSystemMessage() },
+      ...userMessages,
+    ];
+
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -76,8 +119,8 @@ export function PandioChat({ onClose }: { onClose: () => void }) {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "gpt-3.5-turbo",
-        messages: messages,
+        model: "gpt-4o-mini", // Better for context understanding
+        messages: messagesWithContext,
       }),
     });
 
@@ -161,6 +204,17 @@ export function PandioChat({ onClose }: { onClose: () => void }) {
             </CardTitle>
             <div className="flex gap-2">
               <Button
+                onClick={() => refreshContent()}
+                size="icon"
+                disabled={isLoadingContext}
+                className="bg-[#27272a] hover:bg-[#3f3f46] h-6 w-6 disabled:opacity-50"
+                title="Refresh page context"
+              >
+                <RefreshCwIcon
+                  className={`h-4 w-4 ${isLoadingContext ? "animate-spin" : ""}`}
+                />
+              </Button>
+              <Button
                 onClick={handleRelease}
                 size="icon"
                 className="bg-[#27272a] hover:bg-[#3f3f46] h-6 w-6"
@@ -177,7 +231,30 @@ export function PandioChat({ onClose }: { onClose: () => void }) {
               </Button>
             </div>
           </CardHeader>
-          <div className="flex justify-end border-b border-white/10"></div>
+          {/* Page Context Indicator */}
+          <div className="px-3 py-2 border-b border-white/10 bg-[#1f1f23]">
+            {isLoadingContext ? (
+              <div className="flex items-center gap-2 text-xs text-[#71717a]">
+                <RefreshCwIcon className="h-3 w-3 animate-spin" />
+                <span>Loading page context...</span>
+              </div>
+            ) : pageContent ? (
+              <div className="flex items-center gap-2 text-xs">
+                <GlobeIcon className="h-3 w-3 text-emerald-500 flex-shrink-0" />
+                <span
+                  className="text-emerald-500 font-medium truncate"
+                  title={pageContent.title || pageContent.url}
+                >
+                  {pageContent.title || pageContent.url}
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-xs text-[#71717a]">
+                <AlertCircleIcon className="h-3 w-3 flex-shrink-0" />
+                <span>No page context available</span>
+              </div>
+            )}
+          </div>
           <CardContent className="flex-1 overflow-auto p-4 space-y-4">
             {messages.length === 0 ? (
               <div className="text-center text-[#71717a] mt-8">
@@ -271,6 +348,17 @@ export function PandioChat({ onClose }: { onClose: () => void }) {
           </CardTitle>
           <div className="flex gap-2">
             <Button
+              onClick={() => refreshContent()}
+              size="icon"
+              disabled={isLoadingContext}
+              className="bg-[#27272a] hover:bg-[#3f3f46] h-6 w-6 disabled:opacity-50"
+              title="Refresh page context"
+            >
+              <RefreshCwIcon
+                className={`h-4 w-4 ${isLoadingContext ? "animate-spin" : ""}`}
+              />
+            </Button>
+            <Button
               size="icon"
               className="bg-[#27272a] hover:bg-[#3f3f46] h-6 w-6"
               onClick={handleMinimize}
@@ -286,7 +374,30 @@ export function PandioChat({ onClose }: { onClose: () => void }) {
             </Button>
           </div>
         </CardHeader>
-        <div className="flex justify-end border-b border-white/10"></div>
+        {/* Page Context Indicator */}
+        <div className="px-3 py-2 border-b border-white/10 bg-[#1f1f23]">
+          {isLoadingContext ? (
+            <div className="flex items-center gap-2 text-xs text-[#71717a]">
+              <RefreshCwIcon className="h-3 w-3 animate-spin" />
+              <span>Loading page context...</span>
+            </div>
+          ) : pageContent ? (
+            <div className="flex items-center gap-2 text-xs">
+              <GlobeIcon className="h-3 w-3 text-emerald-500 flex-shrink-0" />
+              <span
+                className="text-emerald-500 font-medium truncate"
+                title={pageContent.title || pageContent.url}
+              >
+                {pageContent.title || pageContent.url}
+              </span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-xs text-[#71717a]">
+              <AlertCircleIcon className="h-3 w-3 flex-shrink-0" />
+              <span>No page context available</span>
+            </div>
+          )}
+        </div>
         <CardContent className="flex-1 overflow-auto p-4 space-y-4">
           {messages.length === 0 ? (
             <div className="text-center text-[#71717a] mt-8">
