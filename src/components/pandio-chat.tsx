@@ -20,6 +20,7 @@ import {
 import { Rnd } from "react-rnd";
 import { useState, useEffect, useRef } from "react";
 import { usePageContext } from "../contexts/page-context";
+import { useFileContext } from "../contexts/file-context";
 
 export function PandioChat({ onClose }: { onClose: () => void }) {
   const [isSidebarMode, setIsSidebarMode] = useState(true);
@@ -29,6 +30,7 @@ export function PandioChat({ onClose }: { onClose: () => void }) {
     isLoading: isLoadingContext,
     refreshContent,
   } = usePageContext();
+  const { getFileContextString, contextFilesCount } = useFileContext();
 
   // Chat state management
   const [messages, setMessages] = useState<
@@ -73,25 +75,41 @@ export function PandioChat({ onClose }: { onClose: () => void }) {
 
   // Build system message with page context
   const buildSystemMessage = (): string => {
-    if (!pageContent) {
-      return "You are Pandio, a helpful AI assistant integrated into a web browser.";
+    const fileContext = getFileContextString();
+
+    let systemMessage =
+      "You are Pandio, a helpful AI assistant integrated into a web browser.";
+
+    // Add page context if available
+    if (pageContent) {
+      systemMessage += `
+  The user is currently viewing a webpage and may ask questions about it.
+  
+  === CURRENT PAGE CONTEXT ===
+  URL: ${pageContent.url}
+  Title: ${pageContent.title}
+  ${pageContent.description ? `Description: ${pageContent.description}` : ""}
+  
+  Page Content:
+  ${pageContent.content}
+  === END PAGE CONTEXT ===
+  
+  ${pageContent.selectedText ? `The user has selected: "${pageContent.selectedText}"` : ""}`;
     }
 
-    return `You are Pandio, a helpful AI assistant integrated into a web browser.
-The user is currently viewing a webpage and may ask questions about it.
+    // Add file context if available
+    if (fileContext) {
+      systemMessage += `
+  
+  The user has uploaded the following files for reference:
+  
+  ${fileContext}`;
+    }
 
-=== CURRENT PAGE CONTEXT ===
-URL: ${pageContent.url}
-Title: ${pageContent.title}
-${pageContent.description ? `Description: ${pageContent.description}` : ""}
+    systemMessage +=
+      "\n\nAnswer questions using the available context. Be concise and helpful.";
 
-Page Content:
-${pageContent.content}
-=== END PAGE CONTEXT ===
-
-${pageContent.selectedText ? `The user has selected: "${pageContent.selectedText}"` : ""}
-
-Answer questions about this page. Be concise and helpful.`;
+    return systemMessage;
   };
 
   // Call OpenAI API using fetch (works in Electron renderer)

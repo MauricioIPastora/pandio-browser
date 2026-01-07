@@ -22,6 +22,7 @@ import { PandioChat } from "./components/pandio-chat";
 import { useBoundStore } from "@/store/useBoundStore";
 import { PageContextProvider } from "./contexts/page-context";
 import { useCallback } from "react";
+import { FileContextProvider } from "./contexts/file-context";
 
 function App() {
   const tabs = useBoundStore((state) => state.tabs.items);
@@ -156,100 +157,102 @@ function App() {
 
   return (
     <>
-      <PageContextProvider
-        getWebview={getCurrentWebview}
-        activeTabId={selectedTabId}
-      >
-        <PandioTabsSidebar />
-        <SidebarInset>
-          <div
-            id="browser-tools"
-            className="flex w-full space-x-1 p-3 bg-[#18181b] border-b border-white/10"
-          >
-            <div id="button-container" className="flex space-x-1">
-              <Button
-                onClick={toggleSidebar}
-                className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
-              >
-                <FileIcon />
-              </Button>
-              <Button
-                onClick={handleBack}
-                className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
-              >
-                <ArrowLeftIcon />
-              </Button>
-              <Button
-                onClick={handleForward}
-                className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
-              >
-                <ArrowRightIcon />
-              </Button>
-              <Button
-                onClick={handleRefresh}
-                className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
-              >
-                <RefreshCwIcon />
-              </Button>
-              <Button
-                onClick={handleSearch}
-                className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
-              >
-                <SearchIcon />
-              </Button>
-              <Button
-                onClick={handleHome}
-                className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
-              >
-                <HomeIcon />
-              </Button>
-            </div>
-            <div id="url-input-container" className="flex w-full gap-1">
-              <Input
-                type="text"
-                ref={urlInputRef}
-                onKeyDown={handleKeyDown}
-                className="bg-[#27272a] text-[#71717a] border-white/10 hover:bg-[#e4e4e7]/10 focus-visible:ring-0 focus-visible:ring-offset-0"
-              />
-              <Button
-                onClick={handleChat}
-                className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
-              >
-                <MessageCircleIcon />
-              </Button>
-            </div>
-          </div>
-          <div className="flex flex-1 w-full min-h-0 overflow-hidden">
-            <div id="webview-container" className="flex-1 min-h-0 relative">
-              {tabs.map((tab) => (
-                <webview
-                  key={tab.id}
-                  ref={(el) => {
-                    if (el)
-                      webviewRefs.current.set(
-                        tab.id,
-                        el as unknown as Electron.WebviewTag
-                      );
-                    else webviewRefs.current.delete(tab.id);
-                  }}
-                  src={tab.url}
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    width: "100%",
-                    height: "100%",
-                    display: tab.id === selectedTabId ? "flex" : "none",
-                  }}
+      <FileContextProvider>
+        <PageContextProvider
+          getWebview={getCurrentWebview}
+          activeTabId={selectedTabId}
+        >
+          <PandioTabsSidebar />
+          <SidebarInset>
+            <div
+              id="browser-tools"
+              className="flex w-full space-x-1 p-3 bg-[#18181b] border-b border-white/10"
+            >
+              <div id="button-container" className="flex space-x-1">
+                <Button
+                  onClick={toggleSidebar}
+                  className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
+                >
+                  <FileIcon />
+                </Button>
+                <Button
+                  onClick={handleBack}
+                  className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
+                >
+                  <ArrowLeftIcon />
+                </Button>
+                <Button
+                  onClick={handleForward}
+                  className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
+                >
+                  <ArrowRightIcon />
+                </Button>
+                <Button
+                  onClick={handleRefresh}
+                  className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
+                >
+                  <RefreshCwIcon />
+                </Button>
+                <Button
+                  onClick={handleSearch}
+                  className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
+                >
+                  <SearchIcon />
+                </Button>
+                <Button
+                  onClick={handleHome}
+                  className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
+                >
+                  <HomeIcon />
+                </Button>
+              </div>
+              <div id="url-input-container" className="flex w-full gap-1">
+                <Input
+                  type="text"
+                  ref={urlInputRef}
+                  onKeyDown={handleKeyDown}
+                  className="bg-[#27272a] text-[#71717a] border-white/10 hover:bg-[#e4e4e7]/10 focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
-              ))}
+                <Button
+                  onClick={handleChat}
+                  className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
+                >
+                  <MessageCircleIcon />
+                </Button>
+              </div>
             </div>
-            {isChatOpen && <PandioChat onClose={closeChat} />}
-          </div>
-        </SidebarInset>
-      </PageContextProvider>
+            <div className="flex flex-1 w-full min-h-0 overflow-hidden">
+              <div id="webview-container" className="flex-1 min-h-0 relative">
+                {tabs.map((tab) => (
+                  <webview
+                    key={tab.id}
+                    ref={(el) => {
+                      if (el)
+                        webviewRefs.current.set(
+                          tab.id,
+                          el as unknown as Electron.WebviewTag
+                        );
+                      else webviewRefs.current.delete(tab.id);
+                    }}
+                    src={tab.url}
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      width: "100%",
+                      height: "100%",
+                      display: tab.id === selectedTabId ? "flex" : "none",
+                    }}
+                  />
+                ))}
+              </div>
+              {isChatOpen && <PandioChat onClose={closeChat} />}
+            </div>
+          </SidebarInset>
+        </PageContextProvider>
+      </FileContextProvider>
     </>
   );
 }
