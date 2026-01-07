@@ -3,6 +3,9 @@ import path from "node:path";
 import started from "electron-squirrel-startup";
 import fs from "node:fs/promises";
 
+// Document parsing libraries
+import mammoth from "mammoth";
+
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
   app.quit();
@@ -46,8 +49,34 @@ ipcMain.handle("dialog:openFile", async () => {
   const result = await dialog.showOpenDialog({
     properties: ["openFile", "multiSelections"],
     filters: [
+      {
+        name: "All Supported Files",
+        extensions: [
+          "txt",
+          "md",
+          "json",
+          "csv",
+          "log",
+          "pdf",
+          "doc",
+          "docx",
+          "ppt",
+          "pptx",
+          "xls",
+          "xlsx",
+          "js",
+          "ts",
+          "tsx",
+          "py",
+          "html",
+          "css",
+        ],
+      },
+      {
+        name: "Documents",
+        extensions: ["pdf", "doc", "docx", "ppt", "pptx", "xls", "xlsx"],
+      },
       { name: "Text Files", extensions: ["txt", "md", "json", "csv", "log"] },
-      { name: "Documents", extensions: ["pdf", "doc", "docx"] },
       { name: "Code", extensions: ["js", "ts", "tsx", "py", "html", "css"] },
       { name: "All Files", extensions: ["*"] },
     ],
@@ -55,9 +84,28 @@ ipcMain.handle("dialog:openFile", async () => {
   return result;
 });
 
+// Helper function to extract text from different file types
+async function extractFileContent(filePath: string): Promise<string> {
+  const ext = path.extname(filePath).toLowerCase();
+  const buffer = await fs.readFile(filePath);
+
+  switch (ext) {
+    case ".docx": {
+      // mammoth provides best quality for .docx
+      const result = await mammoth.extractRawText({ buffer });
+      return result.value;
+    }
+
+    default: {
+      // Plain text files
+      return buffer.toString("utf-8");
+    }
+  }
+}
+
 ipcMain.handle("file:read", async (_, filePath: string) => {
   try {
-    const content = await fs.readFile(filePath, "utf-8");
+    const content = await extractFileContent(filePath);
     const stats = await fs.stat(filePath);
     return {
       success: true,
@@ -66,6 +114,7 @@ ipcMain.handle("file:read", async (_, filePath: string) => {
       name: path.basename(filePath),
     };
   } catch (error) {
+    console.error("Error reading file:", filePath, error);
     return { success: false, error: (error as Error).message };
   }
 });

@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { Rnd } from "react-rnd";
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { usePageContext } from "../contexts/page-context";
 import { useFileContext } from "../contexts/file-context";
 
@@ -222,7 +223,7 @@ export function PandioChat({ onClose }: { onClose: () => void }) {
             </CardTitle>
             <div className="flex gap-2">
               {/* refresh context button */}
-              {/* <Button
+              <Button
                 onClick={() => refreshContent()}
                 size="icon"
                 disabled={isLoadingContext}
@@ -232,7 +233,7 @@ export function PandioChat({ onClose }: { onClose: () => void }) {
                 <RefreshCwIcon
                   className={`h-4 w-4 ${isLoadingContext ? "animate-spin" : ""}`}
                 />
-              </Button> */}
+              </Button>
               <Button
                 onClick={handleRelease}
                 size="icon"
@@ -342,22 +343,30 @@ export function PandioChat({ onClose }: { onClose: () => void }) {
   }
 
   // Modal mode - draggable and resizable
-  return (
+  // Calculate safe initial position within viewport bounds
+  const modalWidth = 350;
+  const modalHeight = Math.min(500, window.innerHeight - 40);
+  const initialX = Math.max(20, window.innerWidth - modalWidth - 40);
+  const initialY = Math.max(20, (window.innerHeight - modalHeight) / 2);
+
+  // Use Portal to render modal at document.body level (escapes overflow:hidden parents)
+  return createPortal(
     <Rnd
       default={{
-        x: window.innerWidth - 380,
-        y: window.innerHeight - 1000,
-        width: 350,
-        height: 500,
+        x: initialX,
+        y: initialY,
+        width: modalWidth,
+        height: modalHeight,
       }}
-      minWidth={300}
-      minHeight={300}
-      maxWidth={800}
-      maxHeight={window.innerHeight - 100}
+      minWidth={280}
+      minHeight={250}
+      maxWidth={Math.min(800, window.innerWidth - 40)}
+      maxHeight={window.innerHeight - 40}
       dragHandleClassName="drag-handle"
       bounds="window"
       style={{
         zIndex: 9999,
+        position: "fixed",
       }}
     >
       <Card className="h-full flex flex-col bg-[#18181b] border-white/10">
@@ -481,6 +490,7 @@ export function PandioChat({ onClose }: { onClose: () => void }) {
           </div>
         </CardFooter>
       </Card>
-    </Rnd>
+    </Rnd>,
+    document.body
   );
 }
