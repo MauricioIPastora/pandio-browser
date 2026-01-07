@@ -12,12 +12,14 @@ if (started) {
   app.quit();
 }
 
+let mainWindow: BrowserWindow | null = null;
+
 const createWindow = () => {
-  // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  // Create the browser window with frameless design for custom title bar
+  mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
-    autoHideMenuBar: true,
+    frame: false, // Remove native frame for custom title bar
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       webviewTag: true,
@@ -174,6 +176,33 @@ ipcMain.handle("file:read", async (_, filePath: string) => {
     console.error("Error reading file:", filePath, error);
     return { success: false, error: (error as Error).message };
   }
+});
+
+// Window control handlers for custom title bar
+ipcMain.handle("window:minimize", () => {
+  if (mainWindow) {
+    mainWindow.minimize();
+  }
+});
+
+ipcMain.handle("window:maximize", () => {
+  if (mainWindow) {
+    if (mainWindow.isMaximized()) {
+      mainWindow.unmaximize();
+    } else {
+      mainWindow.maximize();
+    }
+  }
+});
+
+ipcMain.handle("window:close", () => {
+  if (mainWindow) {
+    mainWindow.close();
+  }
+});
+
+ipcMain.handle("window:isMaximized", () => {
+  return mainWindow ? mainWindow.isMaximized() : false;
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common

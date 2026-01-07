@@ -14,6 +14,11 @@ import {
   MessageCircleIcon,
   RefreshCwIcon,
   SearchIcon,
+  MinusIcon,
+  SquareIcon,
+  XIcon,
+  MaximizeIcon,
+  PanelLeftIcon,
 } from "lucide-react";
 import { usePandioSidebar } from "@/hooks/use-sidebar";
 import { PandioTabsSidebar } from "./components/pandio-tabs-sidebar";
@@ -31,10 +36,27 @@ function App() {
 
   const webviewRefs = useRef<Map<number, Electron.WebviewTag>>(new Map());
   const urlInputRef = useRef<HTMLInputElement>(null);
+  const [isMaximized, setIsMaximized] = useState(false);
 
   const currentTab = tabs.find((t) => t.id === selectedTabId);
   const { toggleSidebar } = usePandioSidebar(); // open is true if the sidebar is open, false if it is closed
   const { isChatOpen, toggleChat, closeChat } = useChat();
+
+  // Check window maximize state on mount and when window state changes
+  useEffect(() => {
+    const checkMaximized = async () => {
+      const maximized = await window.electronAPI?.isMaximized();
+      setIsMaximized(maximized ?? false);
+    };
+    checkMaximized();
+
+    // Listen for window resize events to update maximize state
+    const handleResize = () => {
+      checkMaximized();
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Setup webview event listeners for each tab
   useEffect(() => {
@@ -155,6 +177,21 @@ function App() {
     return webviewRefs.current.get(selectedTabId) || null;
   }, [selectedTabId]);
 
+  // Window control handlers
+  const handleMinimize = async () => {
+    await window.electronAPI?.minimizeWindow();
+  };
+
+  const handleMaximize = async () => {
+    await window.electronAPI?.maximizeWindow();
+    const maximized = await window.electronAPI?.isMaximized();
+    setIsMaximized(maximized ?? false);
+  };
+
+  const handleClose = async () => {
+    await window.electronAPI?.closeWindow();
+  };
+
   return (
     <>
       <FileContextProvider>
@@ -164,60 +201,113 @@ function App() {
         >
           <PandioTabsSidebar />
           <SidebarInset>
+            {/* Custom Title Bar with Integrated Navbar */}
             <div
-              id="browser-tools"
-              className="flex w-full space-x-1 p-3 bg-[#18181b] border-b border-white/10"
+              id="title-bar"
+              className="flex items-center h-[30px] bg-[#18181b] border-b border-white/10 title-bar-drag"
+              style={{ WebkitAppRegion: "drag" } as React.CSSProperties}
             >
-              <div id="button-container" className="flex space-x-1">
+              {/* Left side: Sidebar toggle */}
+              <div
+                className="flex items-center px-2 h-full title-bar-no-drag"
+                style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
+              >
                 <Button
                   onClick={toggleSidebar}
-                  className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
+                  size="sm"
+                  className="h-6 w-6 p-0 text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-transparent"
                 >
-                  <FileIcon />
+                  <PanelLeftIcon className="h-3.5 w-3.5" />
                 </Button>
+              </div>
+
+              {/* Center: Browser controls */}
+              <div
+                id="browser-tools"
+                className="flex items-center justify-center flex-1 space-x-1 px-2 h-full title-bar-no-drag"
+                style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
+              >
                 <Button
                   onClick={handleBack}
-                  className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
+                  size="sm"
+                  className="h-6 w-6 p-0 text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-transparent"
                 >
-                  <ArrowLeftIcon />
+                  <ArrowLeftIcon className="h-3.5 w-3.5" />
                 </Button>
                 <Button
                   onClick={handleForward}
-                  className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
+                  size="sm"
+                  className="h-6 w-6 p-0 text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-transparent"
                 >
-                  <ArrowRightIcon />
+                  <ArrowRightIcon className="h-3.5 w-3.5" />
                 </Button>
                 <Button
                   onClick={handleRefresh}
-                  className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
+                  size="sm"
+                  className="h-6 w-6 p-0 text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-transparent"
                 >
-                  <RefreshCwIcon />
+                  <RefreshCwIcon className="h-3.5 w-3.5" />
                 </Button>
                 <Button
                   onClick={handleSearch}
-                  className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
+                  size="sm"
+                  className="h-6 w-6 p-0 text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-transparent"
                 >
-                  <SearchIcon />
+                  <SearchIcon className="h-3.5 w-3.5" />
                 </Button>
                 <Button
                   onClick={handleHome}
-                  className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
+                  size="sm"
+                  className="h-6 w-6 p-0 text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-transparent"
                 >
-                  <HomeIcon />
+                  <HomeIcon className="h-3.5 w-3.5" />
                 </Button>
+                <div id="url-input-container" className="flex items-center gap-1 ml-1">
+                  <Input
+                    type="text"
+                    ref={urlInputRef}
+                    onKeyDown={handleKeyDown}
+                    className="h-5 text-xs bg-[#27272a] text-[#71717a] border-white/10 hover:bg-[#e4e4e7]/10 focus-visible:ring-0 focus-visible:ring-offset-0 w-[300px]"
+                  />
+                  <Button
+                    onClick={handleChat}
+                    size="sm"
+                    className="h-6 w-6 p-0 text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-transparent"
+                  >
+                    <MessageCircleIcon className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
               </div>
-              <div id="url-input-container" className="flex w-full gap-1">
-                <Input
-                  type="text"
-                  ref={urlInputRef}
-                  onKeyDown={handleKeyDown}
-                  className="bg-[#27272a] text-[#71717a] border-white/10 hover:bg-[#e4e4e7]/10 focus-visible:ring-0 focus-visible:ring-offset-0"
-                />
+
+              {/* Right side: Window controls */}
+              <div
+                className="flex items-center title-bar-no-drag"
+                style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
+              >
                 <Button
-                  onClick={handleChat}
-                  className="text-[#fafafa] hover:text-[#a1a1aa] hover:bg-[#27272a] bg-[#18181b]"
+                  onClick={handleMinimize}
+                  size="sm"
+                  className="h-[30px] w-[46px] rounded-none text-[#fafafa] hover:bg-[#27272a] bg-transparent"
                 >
-                  <MessageCircleIcon />
+                  <MinusIcon className="h-4 w-4" />
+                </Button>
+                <Button
+                  onClick={handleMaximize}
+                  size="sm"
+                  className="h-[30px] w-[46px] rounded-none text-[#fafafa] hover:bg-[#27272a] bg-transparent"
+                >
+                  {isMaximized ? (
+                    <SquareIcon className="h-3 w-3" />
+                  ) : (
+                    <MaximizeIcon className="h-3 w-3" />
+                  )}
+                </Button>
+                <Button
+                  onClick={handleClose}
+                  size="sm"
+                  className="h-[30px] w-[46px] rounded-none text-[#fafafa] hover:bg-[#ff6568] bg-transparent"
+                >
+                  <XIcon className="h-4 w-4" />
                 </Button>
               </div>
             </div>

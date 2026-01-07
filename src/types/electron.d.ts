@@ -10,6 +10,11 @@ interface ElectronAPI {
     name?: string;
     error?: string;
   }>;
+  // Window control functions for custom title bar
+  minimizeWindow: () => Promise<void>;
+  maximizeWindow: () => Promise<void>;
+  closeWindow: () => Promise<void>;
+  isMaximized: () => Promise<boolean>;
 }
 
 declare global {

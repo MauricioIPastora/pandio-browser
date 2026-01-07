@@ -77,3 +77,12 @@
     height: 100%;
   }
 }
+
+/* Custom title bar draggable regions */
+.title-bar-drag {
+  -webkit-app-region: drag;
+}
+
+.title-bar-no-drag {
+  -webkit-app-region: no-drag;
+}
