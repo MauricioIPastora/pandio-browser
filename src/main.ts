@@ -5,6 +5,7 @@ import fs from "node:fs/promises";
 
 // Document parsing libraries
 import mammoth from "mammoth";
+// pdfjs-dist will be imported dynamically to avoid bundling issues
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -96,6 +97,62 @@ async function extractFileContent(filePath: string): Promise<string> {
       return result.value;
     }
 
+    case ".pdf": {
+      // pdfjs-dist for PDF parsing
+      // Use dynamic import with legacy build for Node.js compatibility
+      const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+      
+      // Set worker source - try multiple path resolution methods for Electron
+      let workerPath: string;
+      try {
+        // First try: relative to app path (works in packaged Electron apps)
+        workerPath = path.join(
+          app.getAppPath(),
+          "node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs"
+        );
+        // Check if file exists, if not try alternative
+        await fs.access(workerPath);
+      } catch {
+        // Fallback: relative to current working directory (works in dev)
+        workerPath = path.resolve(
+          process.cwd(),
+          "node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs"
+        );
+      }
+      
+      // Convert Windows backslashes to forward slashes for file:// URL
+      const normalizedPath = workerPath.replace(/\\/g, "/");
+      // Ensure path starts with / on Windows (file:///C:/...)
+      const fileUrl = normalizedPath.startsWith("/")
+        ? `file://${normalizedPath}`
+        : `file:///${normalizedPath}`;
+      
+      pdfjs.GlobalWorkerOptions.workerSrc = fileUrl;
+      
+      // Convert Buffer to Uint8Array as required by pdfjs-dist
+      const uint8Array = new Uint8Array(buffer);
+      
+      const loadingTask = pdfjs.getDocument({ data: uint8Array });
+      const pdf = await loadingTask.promise;
+      
+      let fullText = "";
+      
+      // Extract text from all pages
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const textContent = await page.getTextContent();
+        
+        // Combine all text items from the page
+        const pageText = textContent.items
+          .map((item: any) => item.str)
+          .join(" ");
+        
+        fullText += pageText + "\n";
+      }
+      
+      return fullText.trim();
+    }
+    
     default: {
       // Plain text files
       return buffer.toString("utf-8");
